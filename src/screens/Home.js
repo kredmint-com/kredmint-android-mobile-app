@@ -10,18 +10,28 @@ import {
   // Linking,
   BackHandler,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Linking } from 'expo';
 import { WebView } from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { HOST } from '../constants';
+import { HOST, postMessageTypes, randomNumber } from '../constants';
 
-// const HOST = 'http://192.168.0.101:3000';
-// const HOST = 'https://merchant2-dev.kredmint.in';
-// const HOST = 'https://merchant2.kredmint.in';
+const SAVE_FROM_WEB = `(function() {
+  var values = [],
+  keys = Object.keys(localStorage),
+  i = keys.length;
+  while ( i-- ) {
+      values.push({key: keys[i], value: localStorage.getItem(keys[i])});
+  }
+  window.ReactNativeWebView.postMessage(JSON.stringify({message: 'webview/save', payload: values}));
+})();`;
 
 function WebViewUI({ route, navigation }) {
   const [webViewUrl, setWebViewUrl] = React.useState(`${HOST}/`);
+  const [initScript, setInitScript] = React.useState();
+  const [isBrowserInProgress, setBrowserProgressState] = React.useState(false);
+
   let webviewPropCanGoBack = null;
   // const [canGoBack, setCanGoBack] = React.useState(false);
   const { customUrl = '' } = route?.params || {};
@@ -29,11 +39,17 @@ function WebViewUI({ route, navigation }) {
   const webviewRef = React.useRef();
 
   useEffect(() => {
-    console.log('customUrl effect', customUrl);
     if (customUrl) {
       setWebViewUrl(customUrl);
     }
   }, [customUrl]);
+
+  useEffect(() => {
+    if (webViewUrl && isBrowserInProgress) {
+      setBrowserProgressState(false);
+      // webviewRef?.current?.reload();
+    }
+  }, [webViewUrl]);
 
   const onAndroidBackPress = () => {
     // console.log('canGoBack', webviewPropCanGoBack, webviewRef);
@@ -88,26 +104,28 @@ function WebViewUI({ route, navigation }) {
       <ActivityIndicator
         color="#009b88"
         size="large"
-        style={styles.ActivityIndicatorStyle}
+        // style={styles.ActivityIndicatorStyle}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 0 }}
       />
     );
   }
 
-  const onNavigationStateChange = (navState) => {
-    console.log('this.webView', this.webView);
-    setCanGoBack(navState.canGoBack);
-  };
-
   const onMessage = async ({ nativeEvent }) => {
     const data = nativeEvent?.data;
-    // console.log(
-    //   'datata',
-    //   JSON.parse(data).message,
-    //   data?.message,
-    //   data?.data?.status
-    // );
     try {
       const parsedData = JSON.parse(data);
+      switch (parsedData.message) {
+        case postMessageTypes.SAVE: {
+          const data = parsedData.payload;
+          data.forEach((dt) => {
+            AsyncStorage.setItem(dt.key, dt.value);
+          });
+          break;
+        }
+        default:
+          break;
+      }
+
       if (
         parsedData?.message === 'ENACH' &&
         parsedData?.data?.status === 'initiated'
@@ -120,10 +138,26 @@ function WebViewUI({ route, navigation }) {
         const url = `${HOST}/eNach/?URL=${encodeURIComponent(
           data.eNachUrl
         )}&id=${data.id}&token=${data.token}&isApp=true`;
-        console.log('url', url);
 
-        const browser = await WebBrowser.openBrowserAsync(url);
-
+        // const redirectUri = Linking.createURL('/');
+        // const redirectUri =
+        //   'exp://192.168.0.101:19000/--/home?message=enach_success';
+        setBrowserProgressState(true);
+        // const redirectUri = 'kredmintlink://home?message=enach_success';
+        const browser = await WebBrowser.openAuthSessionAsync(url, url, {
+          showInRecents: true,
+          createTask: false,
+        });
+        setBrowserProgressState(false);
+        // console.log('browser', browser);
+        if (browser?.type === 'dismiss') {
+          if (webViewUrl.indexOf('?') !== -1) {
+            setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
+          } else {
+            setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
+          }
+          // webviewRef?.current?.reload();
+        }
         // setTimeout(async () => {
         //   const closeResult = await WebBrowser.coolDownAsync();
         //   console.log('closeResult', closeResult);
@@ -143,35 +177,86 @@ function WebViewUI({ route, navigation }) {
       console.log(e);
     }
   };
+
+  async function handleInit() {
+    const allKeys = await AsyncStorage.getAllKeys();
+    if (allKeys.length === 0) {
+      setInitScript(SAVE_FROM_WEB);
+    } else {
+      let jsStr = '';
+      const keysData = await Promise.all(
+        allKeys.map((key) => AsyncStorage.getItem(key))
+      );
+      allKeys.forEach((key, index) => {
+        jsStr = jsStr + `localStorage.setItem("${key}", "${keysData[index]}");`;
+      });
+      const SAVE_FROM_RN = `(function() {
+        ${jsStr}
+      })();`;
+      setInitScript(SAVE_FROM_RN);
+    }
+  }
+
+  const refreshHandler = () => {
+    setInterval(() => {
+      webviewRef.current?.injectJavaScript(SAVE_FROM_WEB);
+    }, 5000);
+  };
+
+  useEffect(() => {
+    handleInit().then(refreshHandler);
+  }, []);
   return (
     <>
       <SafeAreaView style={styles.flexContainer}>
-        <WebView
-          source={{ uri: webViewUrl }}
-          renderLoading={LoadingIndicatorView}
-          startInLoadingState={true}
-          ref={webviewRef}
-          domStorageEnabled={true}
-          allowFileAccess={true}
-          allowUniversalAccessFromFileURLs={true}
-          allowingReadAccessToURL={true}
-          javaScriptEnabled={true}
-          onMessage={onMessage}
-          setSupportMultipleWindows={false}
-          // onNavigationStateChange={onNavigationStateChange}
-          onNavigationStateChange={(navState) => {
-            webviewPropCanGoBack = navState.canGoBack;
-          }}
-          // onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-          // onShouldStartLoadWithRequest={(event) => {
-          //   console.log('heyBorher');
-          //   if (!event.url.includes('kredmint')) {
-          //     Linking.openURL(event.url);
-          //     return false;
-          //   }
-          //   return true;
-          // }}
-        />
+        {initScript && (
+          <WebView
+            source={{ uri: webViewUrl }}
+            renderLoading={LoadingIndicatorView}
+            startInLoadingState={true}
+            ref={webviewRef}
+            injectedJavaScript={initScript}
+            domStorageEnabled={true}
+            allowFileAccess={true}
+            allowUniversalAccessFromFileURLs={true}
+            allowingReadAccessToURL={true}
+            javaScriptEnabled={true}
+            onMessage={onMessage}
+            setSupportMultipleWindows={false}
+            // onNavigationStateChange={onNavigationStateChange}
+            onNavigationStateChange={(navState) => {
+              webviewPropCanGoBack = navState.canGoBack;
+            }}
+            // onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+            // onShouldStartLoadWithRequest={(event) => {
+            //   console.log('heyBorher');
+            //   if (!event.url.includes('kredmint')) {
+            //     Linking.openURL(event.url);
+            //     return false;
+            //   }
+            //   return true;
+            // }}
+            onRenderProcessGone={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              // log this in GA or Firebase
+              console.warn('WebView Crashed: ', nativeEvent.didCrash);
+            }}
+            renderError={(errorName) => (
+              <Text
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  top: 0,
+                }}
+              >
+                Oops.. something went wrong!
+              </Text>
+            )}
+            pullToRefreshEnabled={true}
+          />
+        )}
       </SafeAreaView>
     </>
   );

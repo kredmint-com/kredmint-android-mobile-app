@@ -59,9 +59,9 @@ const App = () => {
   const handleURL = async (url) => {
     const { hostname, path, queryParams } = Linking.parse(url);
 
-    alert(
-      `Hey ${hostname} and ${queryParams.message} url=${url} hostname=${hostname}`
-    );
+    // alert(
+    //   `Hey ${hostname} and ${queryParams.message} url=${url} hostname=${hostname}`
+    // );
     if (hostname === 'home' && queryParams.message === 'enach_success') {
       const newWebviewUrl = `${HOST}/submitted/?message=${queryParams?.message}`;
       WebBrowser.coolDownAsync();
@@ -79,6 +79,7 @@ const App = () => {
       console.log(path, queryParams);
     }
   };
+  // console.log('showRealApp', showRealApp);
   return (
     <>
       <NavigationContainer ref={navRef}>

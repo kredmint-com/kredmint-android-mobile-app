@@ -1,10 +1,11 @@
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
 import Onboarding from 'react-native-onboarding-swiper';
 
 const OnboardingPage = ({ onDoneCb }) => {
   return (
     <Onboarding
+      // DoneButtonComponent={<View>Done</View>}
       pages={[
         {
           backgroundColor: '#224091',
