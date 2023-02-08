@@ -3,9 +3,9 @@
     "name": "Kredmint",
     "slug": "one-code-web-new",
     "scheme": "kredmintlink",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/app-blue.png",
+    "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash_screen.png",
@@ -15,9 +15,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.schn9891.onecodewebnew"
@@ -30,14 +28,11 @@
           "data": [
             {
               "scheme": "https",
-              "host": "*.kredmint.in",
+              "host": "merchant2.kredmint.in",
               "pathPrefix": "/kredmintlink"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
       "adaptiveIcon": {

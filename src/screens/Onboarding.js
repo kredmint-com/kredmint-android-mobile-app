@@ -36,7 +36,7 @@ const OnboardingPage = ({ onDoneCb }) => {
           backgroundColor: '#224091',
           image: (
             <Image
-              source={require('../../assets/avail-bg.png')}
+              source={require('../../assets/avail-credit.png')}
               style={{ width: 300, height: 300 }}
             />
           ),

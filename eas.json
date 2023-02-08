@@ -18,7 +18,9 @@
       }
     },
     "preview3": {
-      "developmentClient": true
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {}
   }
