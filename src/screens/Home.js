@@ -17,15 +17,15 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { HOST, postMessageTypes, randomNumber } from '../constants';
 
-const SAVE_FROM_WEB = `(function() {
-  var values = [],
-  keys = Object.keys(localStorage),
-  i = keys.length;
-  while ( i-- ) {
-      values.push({key: keys[i], value: localStorage.getItem(keys[i])});
-  }
-  window.ReactNativeWebView.postMessage(JSON.stringify({message: 'webview/save', payload: values}));
-})();`;
+// const SAVE_FROM_WEB = `(function() {
+//   var values = [],
+//   keys = Object.keys(localStorage),
+//   i = keys.length;
+//   while ( i-- ) {
+//       values.push({key: keys[i], value: localStorage.getItem(keys[i])});
+//   }
+//   window.ReactNativeWebView.postMessage(JSON.stringify({message: 'webview/save', payload: values}));
+// })();`;
 
 function WebViewUI({ route, navigation }) {
   const [webViewUrl, setWebViewUrl] = React.useState(`${HOST}/`);
@@ -117,9 +117,25 @@ function WebViewUI({ route, navigation }) {
       switch (parsedData.message) {
         case postMessageTypes.SAVE: {
           const data = parsedData.payload;
-          data.forEach((dt) => {
-            AsyncStorage.setItem(dt.key, dt.value);
-          });
+          if (data?.key && data?.value)
+            await AsyncStorage.setItem(data.key, data.value);
+          break;
+        }
+
+        case postMessageTypes.DELETE: {
+          const data = parsedData.payload;
+          if (data?.key) {
+            await AsyncStorage.removeItem(data.key);
+          }
+          break;
+        }
+
+        case postMessageTypes.LOGOUT: {
+          const appLaunched = await AsyncStorage.getItem('appLaunched');
+          webviewRef.current.injectJavaScript(`(function() {})();`);
+          setInitScript(`(function() {})();`);
+          await AsyncStorage.clear();
+          await AsyncStorage.setItem('appLaunched', appLaunched);
           break;
         }
         default:
@@ -178,34 +194,71 @@ function WebViewUI({ route, navigation }) {
     }
   };
 
-  async function handleInit() {
-    const allKeys = await AsyncStorage.getAllKeys();
-    if (allKeys.length === 0) {
-      setInitScript(SAVE_FROM_WEB);
-    } else {
-      let jsStr = '';
-      const keysData = await Promise.all(
-        allKeys.map((key) => AsyncStorage.getItem(key))
-      );
-      allKeys.forEach((key, index) => {
-        jsStr = jsStr + `localStorage.setItem("${key}", "${keysData[index]}");`;
-      });
-      const SAVE_FROM_RN = `(function() {
-        ${jsStr}
-      })();`;
-      setInitScript(SAVE_FROM_RN);
-    }
-  }
+  // async function handleInit() {
+  //   const allKeys = await AsyncStorage.getAllKeys();
+  //   if (allKeys.length === 0) {
+  //     setInitScript(SAVE_FROM_WEB);
+  //   } else {
+  //     let jsStr = '';
+  //     const keysData = await Promise.all(
+  //       allKeys.map((key) => AsyncStorage.getItem(key))
+  //     );
+  //     allKeys.forEach((key, index) => {
+  //       jsStr = jsStr + `localStorage.setItem("${key}", "${keysData[index]}");`;
+  //     });
+  //     const SAVE_FROM_RN = `(function() {
+  //       ${jsStr}
+  //     })();`;
+  //     setInitScript(SAVE_FROM_RN);
+  //   }
+  // }
 
-  const refreshHandler = () => {
-    setInterval(() => {
-      webviewRef.current?.injectJavaScript(SAVE_FROM_WEB);
-    }, 5000);
-  };
+  // const refreshHandler = () => {
+  //   intervalId = setInterval(() => {
+  //     webviewRef.current?.injectJavaScript(SAVE_FROM_WEB);
+  //   }, 3000);
+  //   return () => {
+  //     intervalId && clearInterval(intervalId);
+  //   };
+  // };
+
+  // useEffect(() => {
+  //   handleInit().then(refreshHandler);
+  // }, []);
 
   useEffect(() => {
-    handleInit().then(refreshHandler);
+    getScript();
   }, []);
+
+  // const onWebViewLoadStart = () => {
+  //   webviewRef.injectJavaScript(
+  //     'if(window.opener!==window.ReactNativeWebView){window.opener=window.ReactNativeWebView;}'
+  //   );
+  // };
+
+  async function getScript() {
+    const allKeys = await AsyncStorage.getAllKeys();
+    console.log('allKeys', allKeys);
+    let jsStr = '';
+    const keysData = await Promise.all(
+      allKeys.map((key) => AsyncStorage.getItem(key))
+    );
+
+    allKeys.forEach((key, index) => {
+      if (key.includes('web_')) {
+        const newKey = key.replace('web_', '');
+        jsStr =
+          jsStr + `localStorage.setItem("${newKey}", "${keysData[index]}");`;
+      }
+    });
+
+    const SAVE_FROM_RN = `(function() {
+          ${jsStr}
+        })();`;
+    setInitScript(SAVE_FROM_RN);
+  }
+
+  // console.log('getScript', getScript());
   return (
     <>
       <SafeAreaView style={styles.flexContainer}>
@@ -215,8 +268,8 @@ function WebViewUI({ route, navigation }) {
             renderLoading={LoadingIndicatorView}
             startInLoadingState={true}
             ref={webviewRef}
-            injectedJavaScript={initScript}
             domStorageEnabled={true}
+            injectedJavaScript={initScript}
             allowFileAccess={true}
             allowUniversalAccessFromFileURLs={true}
             allowingReadAccessToURL={true}

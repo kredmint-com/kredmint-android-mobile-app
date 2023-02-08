@@ -5,7 +5,7 @@
     "scheme": "kredmintlink",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/app-icon.png",
+    "icon": "./assets/app-white.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash_screen.png",
@@ -36,7 +36,7 @@
         }
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app-blue.png",
+        "foregroundImage": "./assets/app-white.png",
         "backgroundColor": "#224091"
       },
       "package": "com.schn9891.onecodewebnew"
