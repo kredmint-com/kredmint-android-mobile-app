@@ -163,6 +163,9 @@ function WebViewUI({ route, navigation }) {
         const browser = await WebBrowser.openAuthSessionAsync(url, url, {
           showInRecents: true,
           createTask: false,
+          showTitle: false,
+          secondaryToolbarColor: '#000',
+          enableBarCollapsing: true,
         });
         setBrowserProgressState(false);
         // console.log('browser', browser);

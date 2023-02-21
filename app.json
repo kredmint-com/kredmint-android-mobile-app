@@ -39,7 +39,8 @@
         "foregroundImage": "./assets/app-white.png",
         "backgroundColor": "#224091"
       },
-      "package": "com.schn9891.onecodewebnew"
+      "package": "com.schn9891.onecodewebnew",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
