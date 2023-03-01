@@ -1,48 +1,53 @@
-import React from 'react';
+import React from "react";
 // import { DigioRNComponent } from 'digio-sdk-rn';
-import { View, Button, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { DigioRNComponent } from '../components/DIgioSdk';
+import { View, Button, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { DigioRNComponent } from "../components/DIgioSdk";
 export default class Enach extends React.Component {
   constructor(props) {
     super(props);
     console.log(
-      'Enach props',
+      "Enach props",
       // props?.route?.params,
-      props?.route?.params?.customUrl?.split('/')[5]
+      props?.customUrl?.split("/")[5]
     );
     this.state = {
-      digioDocumentId: props?.route?.params?.customUrl?.split('/')[5],
-      digioUserIdentifier: props?.route?.params?.customUrl?.split('/')[7],
+      digioDocumentId: props?.customUrl?.split("/")[5],
+      digioUserIdentifier: props?.customUrl?.split("/")[7],
       //   digioLoginToken: 'Pass GWT token Id here',
       options: {
-        is_redirection_approach: 'true',
+        is_redirection_approach: "true",
         is_iframe: false,
-        environment: 'production',
-        redirect_url: props?.route?.params?.customUrl,
-        logo: 'yourlogourl',
+        environment: "production",
+        redirect_url: props?.customUrl,
+        logo: "yourlogourl",
         theme: {
-          primaryColor: '#234FDA',
-          secondaryColor: '#234FDA',
+          primaryColor: "#234FDA",
+          secondaryColor: "#234FDA",
         },
       },
+      eNachData: null,
     };
   }
 
   onSuccess = (t) => {
-    console.log('enach success');
-    console.log(t + ' Response from Digio SDk ');
+    console.log("enach success");
+    console.log(t + " Response from Digio SDk ");
   };
 
   onCancel = () => {
-    this.props.navigation.navigate('Home');
-    console.log('enach failure ');
-    console.log('Cancel Response from Digio SDk ');
+    this.props.navigation.navigate("Home");
+    console.log("enach failure ");
+    console.log("Cancel Response from Digio SDk ");
   };
 
   componentDidMount = () => {};
+
+  // componentDidUpdate() {
+  //   this.props?.enachData(this.state.eNachData);
+  // }
   render() {
-    console.log('props', this.props);
+    console.log("props", this.props);
 
     return (
       // <View>
@@ -61,6 +66,11 @@ export default class Enach extends React.Component {
         digioDocumentId={this.state.digioDocumentId}
         identifier={this.state.digioUserIdentifier}
         digioToken={this.state.digioLoginToken}
+        customoutput={(value) => {
+          this.setState({ ...this.state, enachData: value });
+          console.log("ENACHHH===", value);
+          this.props?.enachData(value);
+        }}
       />
     );
   }
