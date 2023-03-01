@@ -16,6 +16,7 @@ import Onboarding from './screens/Onboarding';
 
 import * as Linking from 'expo-linking';
 import { HOST } from './constants';
+import Enach from './screens/Enach';
 
 const Stack = createStackNavigator();
 
@@ -37,14 +38,32 @@ const App = () => {
     setData();
   }, []);
 
-  useEffect(() => {
-    // Do something with URL
-    if (url) {
-      handleURL(url);
-    } else {
-      console.log('No URL');
-    }
-  }, [url]);
+  //Handle getInitialUrl
+  // useEffect(() => {
+  //   // Do something with URL
+  //   const getUrlAsync = async () => {
+  //     // Get the deep link used to open the app
+  //     const initialUrl = await Linking.getInitialURL();
+  //     console.log('initialUrl', initialUrl);
+  //     // The setTimeout is just for testing purpose
+  //     // setTimeout(() => {
+  //     //   setUrl(initialUrl);
+  //     //   setProcessing(false);
+  //     // }, 1000);
+  //   };
+
+  //   getUrlAsync();
+  // }, []);
+
+  // useEffect(() => {
+  //   // Do something with URL
+  //   console.log('Url received from Deeplink', url);
+  //   if (url) {
+  //     handleURL(url);
+  //   } else {
+  //     console.log('No URL');
+  //   }
+  // }, [url]);
 
   SplashScreen.preventAutoHideAsync();
   setTimeout(SplashScreen.hideAsync, 1000);
@@ -58,7 +77,7 @@ const App = () => {
 
   const handleURL = async (url) => {
     const { hostname, path, queryParams } = Linking.parse(url);
-
+    console.log('handle url', hostname, path, queryParams);
     // alert(
     //   `Hey ${hostname} and ${queryParams.message} url=${url} hostname=${hostname}`
     // );
@@ -73,6 +92,7 @@ const App = () => {
       // });
       // close open browser if any
     } else if (hostname === 'home') {
+      navRef.navigate('Home');
       // do something for failure
       console.log(path, queryParams);
     } else {
@@ -90,7 +110,20 @@ const App = () => {
           }}
           initialRouteName="Home"
         >
-          <Stack.Screen name="Home" component={WebViewUI} />
+          <Stack.Screen
+            name="Home"
+            component={WebViewUI}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="Enach"
+            component={Enach}
+            options={{
+              animationEnabled: false,
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

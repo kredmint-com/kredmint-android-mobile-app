@@ -9,6 +9,8 @@ import {
   Platform,
   // Linking,
   BackHandler,
+  Image,
+  Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Linking } from 'expo';
@@ -30,11 +32,14 @@ import { HOST, postMessageTypes, randomNumber } from '../constants';
 function WebViewUI({ route, navigation }) {
   const [webViewUrl, setWebViewUrl] = React.useState(`${HOST}/`);
   const [initScript, setInitScript] = React.useState();
+  const [isWebviewRenderError, setWebviewRenderError] = React.useState(null);
+
   const [isBrowserInProgress, setBrowserProgressState] = React.useState(false);
 
   let webviewPropCanGoBack = null;
   // const [canGoBack, setCanGoBack] = React.useState(false);
   const { customUrl = '' } = route?.params || {};
+  console.log('customUrl received', customUrl);
   // console.log('customUrl', customUrl);
   const webviewRef = React.useRef();
 
@@ -154,29 +159,30 @@ function WebViewUI({ route, navigation }) {
         const url = `${HOST}/eNach/?URL=${encodeURIComponent(
           data.eNachUrl
         )}&id=${data.id}&token=${data.token}&isApp=true`;
-
+        navigation.push('Enach', { customUrl: data.eNachUrl });
+        console.log('navigation', navigation);
         // const redirectUri = Linking.createURL('/');
         // const redirectUri =
         //   'exp://192.168.0.101:19000/--/home?message=enach_success';
         setBrowserProgressState(true);
         // const redirectUri = 'kredmintlink://home?message=enach_success';
-        const browser = await WebBrowser.openAuthSessionAsync(url, url, {
-          showInRecents: true,
-          createTask: false,
-          showTitle: false,
-          secondaryToolbarColor: '#000',
-          enableBarCollapsing: true,
-        });
-        setBrowserProgressState(false);
-        // console.log('browser', browser);
-        if (browser?.type === 'dismiss') {
-          if (webViewUrl.indexOf('?') !== -1) {
-            setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
-          } else {
-            setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
-          }
-          // webviewRef?.current?.reload();
-        }
+        // const browser = await WebBrowser.openAuthSessionAsync(url, url, {
+        //   showInRecents: true,
+        //   createTask: false,
+        //   showTitle: false,
+        //   secondaryToolbarColor: '#000',
+        //   enableBarCollapsing: true,
+        // });
+        // setBrowserProgressState(false);
+        // // console.log('browser', browser);
+        // if (browser?.type === 'dismiss') {
+        //   if (webViewUrl.indexOf('?') !== -1) {
+        //     setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
+        //   } else {
+        //     setWebViewUrl(`${HOST}/?event=reload&${randomNumber()}`);
+        //   }
+        //   // webviewRef?.current?.reload();
+        // }
         // setTimeout(async () => {
         //   const closeResult = await WebBrowser.coolDownAsync();
         //   console.log('closeResult', closeResult);
@@ -260,14 +266,17 @@ function WebViewUI({ route, navigation }) {
         })();`;
     setInitScript(SAVE_FROM_RN);
   }
-
   // console.log('getScript', getScript());
   return (
     <>
-      <SafeAreaView style={styles.flexContainer}>
-        {initScript && (
+      <View style={styles.flexContainer}>
+        {initScript && !isWebviewRenderError && (
           <WebView
-            source={{ uri: webViewUrl }}
+            androidHardwareAccelerationDisabled={true}
+            // androidLayerType={'hardware'}
+            source={{
+              uri: webViewUrl,
+            }}
             renderLoading={LoadingIndicatorView}
             startInLoadingState={true}
             ref={webviewRef}
@@ -297,23 +306,49 @@ function WebViewUI({ route, navigation }) {
               // log this in GA or Firebase
               console.warn('WebView Crashed: ', nativeEvent.didCrash);
             }}
-            renderError={(errorName) => (
-              <Text
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  top: 0,
-                }}
-              >
-                Oops.. something went wrong!
-              </Text>
-            )}
+            onError={() => {
+              setWebviewRenderError(true);
+            }}
             pullToRefreshEnabled={true}
           />
         )}
-      </SafeAreaView>
+        {isWebviewRenderError && (
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Image
+              source={require('../../assets/network-error.png')}
+              // style={{ width: 300, height: 300 }}
+            />
+            <View style={styles.errorTextContainer}>
+              <Text style={styles.errorHeading}>Network issue</Text>
+              <Text style={styles.errorSubheading}>
+                Please try again, something bad happened and we lost the
+                connection.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={{
+                color: '#ffffff',
+                backgroundColor: '#224091',
+                width: 'auto',
+                marginLeft: 10,
+                marginRight: 10,
+                marginTop: 15,
+                height: 52,
+                borderRadius: 4,
+                alignItems: 'center',
+                // textAlign: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={() => {
+                setWebviewRenderError(false);
+                // webviewRef.current.reload();
+              }}
+            >
+              <Text style={styles.tryAgainButton}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </>
   );
 }
@@ -343,6 +378,35 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
+  },
+  errorTextContainer: {
+    marginTop: 30,
+    textAlign: 'center',
+    paddingLeft: 16,
+    paddingRight: 16,
+    // flex: 1,
+    // justifyContent: 'center',
+  },
+  errorHeading: {
+    textAlign: 'center',
+    color: '#224091',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  errorSubheading: {
+    marginTop: 16,
+    color: '#808080',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  tryAgainButton: {
+    textAlign: 'center',
+    color: '#fff',
+    fontWeight: `bold`,
+    fontSize: 18,
+    // height: 52,
+    justifyContent: 'center',
+    verticalAlign: 'middle',
   },
 });
 export default WebViewUI;

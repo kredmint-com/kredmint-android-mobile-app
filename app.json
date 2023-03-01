@@ -21,6 +21,7 @@
       "bundleIdentifier": "com.schn9891.onecodewebnew"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -42,6 +43,10 @@
       "package": "com.schn9891.onecodewebnew",
       "versionCode": 2
     },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },

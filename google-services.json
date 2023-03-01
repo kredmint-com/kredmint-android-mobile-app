@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "449193110616",
+    "project_id": "kredmint-app",
+    "storage_bucket": "kredmint-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449193110616:android:dba540d3b02c5440d3ae2d",
+        "android_client_info": {
+          "package_name": "com.schn9891.onecodewebnew"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "449193110616-2e6us2res0q9tgv31ve5sk8fodo17645.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8LYtKCCsWvoXvDZEBJO-YpfTU3H7TO9M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "449193110616-2e6us2res0q9tgv31ve5sk8fodo17645.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
