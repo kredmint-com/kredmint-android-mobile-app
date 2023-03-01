@@ -27,6 +27,7 @@ function WebViewUI({ route, navigation }) {
   const [isBrowserInProgress, setBrowserProgressState] = React.useState(false);
 
   const [showEnach, setShowEnach] = useState(false);
+  const [digioUrl, setDigioUrl] = useState("");
 
   let webviewPropCanGoBack = null;
 
@@ -121,6 +122,7 @@ function WebViewUI({ route, navigation }) {
         const url = `${HOST}/eNach/?URL=${encodeURIComponent(
           data.eNachUrl
         )}&id=${data.id}&token=${data.token}&isApp=true`;
+        setDigioUrl(data.eNachUrl);
         setShowEnach(true);
         //navigation.push("Enach", { customUrl: data.eNachUrl });
         console.log("navigation", navigation);
@@ -157,6 +159,12 @@ function WebViewUI({ route, navigation }) {
         })();`;
     setInitScript(SAVE_FROM_RN);
   }
+
+  const updateStatus = (data) => {
+    if (data.status == "success") {
+      setShowEnach(false);
+    }
+  };
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.flexContainer}>
@@ -235,11 +243,10 @@ function WebViewUI({ route, navigation }) {
         ) : (
           <View style={{ flex: 1 }}>
             <Enach
-              customUrl={
-                "https://app.digio.in/#/enach-mandate-direct/ENA230228112651116ANVDG75AT5TGAP/07121/7017370753"
-              }
+              customUrl={digioUrl}
               enachData={(data) => {
                 console.log("HOME=====>", data);
+                updateStatus(data);
               }}
             />
           </View>
