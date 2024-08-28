@@ -1,6 +1,6 @@
 // export const HOST = 'http://192.168.0.106:3000/?isApp=true';
-// export const HOST = 'https://merchant2.kredmint.in/?isApp=true';
-export const HOST = 'https://merchant2-dev.kredmint.in';
+ export const HOST = 'https://merchant.kredmint.in/?isApp=true';
+//export const HOST = 'https://merchant2-dev.kredmint.in';
 
 export const HOST_WITH_PARAM = `${HOST}/?isApp=true`;
 

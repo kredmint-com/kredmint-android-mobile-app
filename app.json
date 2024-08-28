@@ -41,7 +41,7 @@
         "backgroundColor": "#224091"
       },
       "package": "com.schn9891.onecodewebnew",
-      "versionCode": 2
+      "versionCode": 5
     },
     "plugins": [
       "@react-native-firebase/app",
